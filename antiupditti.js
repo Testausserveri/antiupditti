@@ -69,7 +69,7 @@ function check() {
         }
         try {
             let html = parse(req.body);
-            let versions = html.querySelectorAll('b[data-stringify-type="bold"]');
+            let versions = html.querySelectorAll('strong > span');
             let koe = versions[0].text;
             let ktp = versions[1].text;
             // Fetch API Version
