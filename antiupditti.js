@@ -24,7 +24,6 @@ process
 
 function writeToCache(content, callback) {
     fs.writeFile('cache.json', content, callback);
-    console.log("Write cache!");
 }
 
 function getCache(callback) {
