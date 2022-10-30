@@ -24,6 +24,7 @@ process
 
 function writeToCache(content, callback) {
     fs.writeFile('cache.json', content, callback);
+    console.log("Write cache!");
 }
 
 function getCache(callback) {
@@ -48,7 +49,7 @@ function findDifferenceAndMark(original, newString) {
 
 function getChangelog() {
     return new Promise((resolve, reject) => {
-        needle.get(changelog, (err, req) => {
+        needle.get(changelog, {read_timeout: 8000, response_timeout: 8000}, (err, req) => {
             if (err) {
                 reject(err);
                 return;
@@ -61,10 +62,9 @@ function getChangelog() {
 }
 
 function check() {
-    needle.get(url, function (err, req) {
+    needle.get(url, {read_timeout: 8000, response_timeout: 8000}, function (err, req) {
         if (err) {
             console.error(err);
-            setTimeout(check, 60*1000);
             return;
         }
         try {
@@ -77,9 +77,7 @@ function check() {
                 if (err) {
                     console.log("Unable to read cache: "+err);
                     console.log("skipping");
-                    writeToCache(JSON.stringify({koe, ktp}), () => {
-                        setTimeout(check, 60*1000);
-                    });
+                    writeToCache(JSON.stringify({koe, ktp}), () => {});
                     return;
                 }
                 data = JSON.parse(data);
@@ -91,7 +89,7 @@ function check() {
                         details.push({ name: 'Koetilapalvelin', value: findDifferenceAndMark(data.ktp, ktp) });
                     getChangelog().then(changelog => {
                         changelog.forEach(item => {
-                            details.push({ name: '•', value: item});
+                            details.push({ name: '\u200b', value: `• ${item}`});
                         })
                         const userEmbed = new Discord.MessageEmbed()
                             .setColor('#006ed2')
@@ -108,13 +106,10 @@ function check() {
                         global.channel.send(userEmbed);
                     })
                 }
-                writeToCache(JSON.stringify({koe, ktp}), () => {
-                    setTimeout(check, 60*1000);
-                });
+                writeToCache(JSON.stringify({koe, ktp}), () => {});
             })
         } catch (e) {
             console.error(e);
-            setTimeout(check, 60*1000);
         }
     })
 }
@@ -125,6 +120,7 @@ client.on('ready', () => {
         console.log("Channel "+channel.name);
         global.channel = channel;
         check();
+        setInterval(check, 60*1000)
     })
 });
 
